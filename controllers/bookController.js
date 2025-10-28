@@ -1,7 +1,7 @@
 import Book from '../models/bookModel';
 import User from '../models/userModel';
 
-const addBook = async (resizeBy, res) => {
+const addBooks = async (resizeBy, res) => {
   try {
     const {title, author, publisher, availablebooks, isbn} = req.body;
     if (!title || !author || !publisher || !availablebooks) {
@@ -40,9 +40,38 @@ const getbooksId = async (req, res) => {
     if (!books) {
       return res.status(401).json({message: 'book not found'});
     }
+    res.status(200).json(books);
   } catch (error) {
     return res
       .status(401)
       .json({message: 'Error in finding the required Book'});
   }
 };
+const updateBooks = async (req, res) => {
+  try {
+    const books = await Book.findByIdAndUpdate(req.params.id);
+    if (!books) {
+      return res.status(401).json({message: 'book not found'});
+    }
+    res.status(200).json({message:"Book updated successfully"})
+  } catch (error) {}
+};
+const deleteBooks = async (req, res) => {
+  try {
+    const books = await Book.findByIdAndDelete(req.params.id);
+    if (!books) {
+      return res.status(401).json({message: 'Book with this id not found'});
+    }
+    res.status(200).json({message:"Book deleted successfully"})
+  } catch (error) {
+    return res.status(401).json({message: 'Error in deleting the book'});
+  }
+};
+
+export {
+  addBooks,
+  getallBooks,
+  getbooksId,
+  updateBooks,
+  deleteBooks
+}

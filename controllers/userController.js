@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const generateToken = (id) => {
-  return jwt.sign({id}, process.env.JWT_KEY, {
+  return jwt.sign({id}, process.env.SECRET_KEY, {
     expiresIn: '30d',
   });
 };
@@ -45,19 +45,22 @@ const handleRegister = async (req, res) => {
 const handleLogin = async (req, res) => {
   try {
     const {email, password} = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Please provide email and password' });
+    }
     const user = await User.findOne({email});
     if (!user) {
-      return res.status(400).json({messsage: 'User not found Try again'});
+      return res.status(401).json({messsage: 'User not found Try again'});
     }
 
-    const safePassword =  bcrypt.compare(password, user.password);
+    const safePassword =  await bcrypt.compare(password, user.password);
     if (!safePassword) {
-      return res.status(400).json({message: 'Invalid Password!!'});
+      return res.status(401).json({message: 'Invalid Password!!'});
     }
-    return res.status(400).json({
+    return res.status(200).json({
       message: 'Login successfull',
       user:{
-        id:user._id,
+        _id:user._id,
         name:user.name,
         email:user.email,
       },
@@ -65,7 +68,8 @@ const handleLogin = async (req, res) => {
       
     });
   } catch (error) {
+    console.error("Login Error:", error);
     return res.status(401).json({message:"Login failed!!",error})
   }
 };
-export {handleRegister};
+export {handleRegister,handleLogin};

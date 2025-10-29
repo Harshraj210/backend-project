@@ -1,25 +1,27 @@
 import Book from '../models/bookModel.js';
 import User from '../models/userModel.js';
 
-const addBooks = async (resizeBy, res) => {
+const addBooks = async (req, res) => {
   try {
-    const {title, author, publisher, availablebooks, isbn} = req.body;
-    if (!title || !author || !publisher || !availablebooks) {
+    const {title, author, publisher, genre, isbn, totalQuantity, location} = req.body;
+    if (!title || !author || !isbn || !totalQuantity || !genre || !publisher || !location) {
       return res.status(401).json({message: 'All things are required'});
     }
     const bookexist = await Book.findOne({isbn});
     if (bookexist) {
       return res
-        .status(401)
+        .status(400)
         .json({message: 'Book with this ISBN already exist'});
     }
     const newBook = await Book.create({
       title,
-      author,
-      publisher,
-      genre,
-      isbn,
-      availablebooks,
+            author,
+            publisher,
+            genre, 
+            isbn,
+            totalQuantity, 
+            
+            location,
     });
   } catch (error) {
     return res.status(401).json({message: 'Book addition failed'});

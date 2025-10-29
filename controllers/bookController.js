@@ -1,5 +1,5 @@
-import Book from '../models/bookModel';
-import User from '../models/userModel';
+import Book from '../models/bookModel.js';
+import User from '../models/userModel.js';
 
 const addBooks = async (resizeBy, res) => {
   try {

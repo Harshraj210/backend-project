@@ -1,5 +1,5 @@
 import express from "express"
-import { addBooks,getallBooks,getbooksId,updateBooks,deleteBooks } from "../controllers/bookController"
+import { addBooks,getallBooks,getbooksId,updateBooks,deleteBooks } from "../controllers/bookController.js"
 
 const router = express.Router()
 router.post("/",addBooks)

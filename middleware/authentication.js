@@ -6,9 +6,9 @@ import dotenv from "dotenv"
 dotenv.config()
 
 
-const protect = async(req,resizeBy,next)=>{
+const protect = async(req,res,next)=>{
   try {
-    const authHeader = req.header.authorization
+    const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith( "Bearer ")) {
       return res.status(401).json({ message: "No token, Not authorized!!" });

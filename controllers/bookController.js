@@ -42,6 +42,9 @@ const getbooksId = async (req, res) => {
     }
     res.status(200).json(books);
   } catch (error) {
+    if (error.kind === 'ObjectId') {
+      return res.status(400).json({message: 'Invalid Book ID format'});
+    }
     return res
       .status(401)
       .json({message: 'Error in finding the required Book'});
@@ -53,8 +56,12 @@ const updateBooks = async (req, res) => {
     if (!books) {
       return res.status(401).json({message: 'book not found'});
     }
-    res.status(200).json({message:"Book updated successfully"})
-  } catch (error) {}
+    res.status(200).json({message: 'Book updated successfully'});
+  } catch (error) {
+    if (error.kind === 'objectId') {
+      return;
+    }
+  }
 };
 const deleteBooks = async (req, res) => {
   try {
@@ -62,16 +69,10 @@ const deleteBooks = async (req, res) => {
     if (!books) {
       return res.status(401).json({message: 'Book with this id not found'});
     }
-    res.status(200).json({message:"Book deleted successfully"})
+    res.status(200).json({message: 'Book deleted successfully'});
   } catch (error) {
     return res.status(401).json({message: 'Error in deleting the book'});
   }
 };
 
-export {
-  addBooks,
-  getallBooks,
-  getbooksId,
-  updateBooks,
-  deleteBooks
-}
+export {addBooks, getallBooks, getbooksId, updateBooks, deleteBooks};

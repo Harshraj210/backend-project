@@ -9,9 +9,17 @@ const bookSchema = new mongoose.Schema({
     type: String,
     require: true,
   },
-  availablebooks: {
+  quantityAvailable: {
     type: Number,
     require: true,
+    min: [0, 'Available quantity cannot be negative'],
+    validate: { 
+      // Ensure available not more than total 
+        validator: function(value) {
+          
+          return value <= this.totalQuantity;
+        },
+        message: 'Available quantity cannot exceed total quantity'
   },
   genre:{
     type:String,
@@ -28,7 +36,13 @@ const bookSchema = new mongoose.Schema({
   isbn:{
     type:Number,
     require:true
-  }
+  },
+  totalQuantity: {
+      type: Number,
+      required: true,
+      min: [1, 'Total quantity must be at least 1'], 
+      default: 1,
+    },
 });
 const Book = mongoose.model('Book', bookSchema); 
 

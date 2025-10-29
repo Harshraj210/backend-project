@@ -52,14 +52,18 @@ const getbooksId = async (req, res) => {
 };
 const updateBooks = async (req, res) => {
   try {
-    const books = await Book.findByIdAndUpdate(req.params.id);
+    const books = await Book.findByIdAndUpdate(req.params.id, req.body, {
+      // giving books with updated values
+      new: true,
+      runValidators: true,
+    });
     if (!books) {
       return res.status(401).json({message: 'book not found'});
     }
     res.status(200).json({message: 'Book updated successfully'});
   } catch (error) {
     if (error.kind === 'objectId') {
-      return;
+      return res.status(400).json({ message: 'Invalid Book ID format' })
     }
   }
 };

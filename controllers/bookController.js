@@ -1,133 +1,134 @@
 import Book from '../models/bookModel.js';
-import User from '../models/userModel.js';
-import zod from 'zod';
-const bookSchema = zod.object({
-  title: zod.string().min(1, 'Title is required'),
-  author: zod.string().min(1, 'Author is required'),
-  publisher: zod.string().min(1, 'Publisher is required'),
-  genre: zod.string().min(1, 'Genre is required'),
-  isbn: zod.string().min(1, 'ISBN is required'),
-  totalQuantity: zod.number().min(1, 'Total Quantity is required'),
-  location: zod.string().min(1, 'Location is required'),
-});
 
 const addBooks = async (req, res) => {
   try {
     const {title, author, publisher, genre, isbn, totalQuantity, location} =
       req.body;
 
-    const validation = bookSchema.safeParse(req.body);
-    if (!validation.success) {
+    if (
+      !title ||
+      !author ||
+      !isbn ||
+      !totalQuantity ||
+      !genre ||
+      !publisher ||
+      !location
+    ) {
       return res
         .status(400)
-        .json({message: 'Invalid book data', errors: validation.error.errors});
+        .json({
+          message:
+            'Title, Author, ISBN, Total Quantity, Genre, Publisher, and Location are required',
+        });
     }
-    // if (
-    //   !title ||
-    //   !author ||
-    //   !isbn ||
-    //   !totalQuantity ||
-    //   !genre ||
-    //   !publisher ||
-    //   !location
-    // ) {
-    //   return res.status(401).json({message: 'All things are required'});
-    // }
+
+    // Check if book exists
     const bookexist = await Book.findOne({isbn});
     if (bookexist) {
       return res
         .status(400)
-        .json({message: 'Book with this ISBN already exist'});
+        .json({message: 'Book with this ISBN already exists'});
     }
-    const newBookData = {
+
+    const newBook = await Book.create({
       title,
       author,
       publisher,
       genre,
       isbn,
       totalQuantity,
+
       location,
-    };
-    const validateNewBook = bookSchema.safeParse(newBookData);
-    if (!validateNewBook.success) {
-      return res
-        .status(400)
-        .json({
-          message: 'Invalid book data',
-          errors: validateNewBook.error.errors,
-        });
-    }
-    const newBook = await Book.create(newBookData);
+    });
+
     return res
-      .status(200)
+      .status(201)
       .json({message: 'Book added successfully', book: newBook});
   } catch (error) {
-    return res.status(401).json({message: 'Book addition failed'});
+    console.error('Error adding book:', error);
+
+    return res
+      .status(500)
+      .json({
+        message: 'Book addition failed due to server error',
+        error: error.message,
+      });
   }
 };
 
 const getallBooks = async (req, res) => {
   try {
     const books = await Book.find({});
-    return res.status(200).json(books);
+    // Correct response format: send the array directly or inside an object
+    return res.status(200).json(books); // Send the array of books
   } catch (error) {
-    return res.status(401).json({message: 'Error in getting all books'});
+    console.error('Error getting all books:', error);
+
+    return res.status(500).json({message: 'Error getting all books'});
   }
 };
+
 const getbooksId = async (req, res) => {
   try {
-    const books = await Book.findById(req.params.id);
-    if (!books) {
-      return res.status(401).json({message: 'book not found'});
+    const book = await Book.findById(req.params.id); // Renamed 'books' to 'book' for clarity
+    if (!book) {
+      return res.status(404).json({message: 'Book not found'});
     }
-    res.status(200).json(books);
+    res.status(200).json(book); // Send the single book object
   } catch (error) {
+    console.error('Error getting book by ID:', error);
+
     if (error.kind === 'ObjectId') {
       return res.status(400).json({message: 'Invalid Book ID format'});
     }
-    return res
-      .status(401)
-      .json({message: 'Error in finding the required Book'});
+    // Use 500 for other server errors
+    return res.status(500).json({message: 'Error finding the required Book'});
   }
 };
+
 const updateBooks = async (req, res) => {
   try {
-    const books = await Book.findByIdAndUpdate(req.params.id, req.body, {
-      // giving books with updated values
-      new: true,
-      runValidators: true,
+    const book = await Book.findByIdAndUpdate(req.params.id, req.body, {
+      new: true, // Return the updated document
+      runValidators: true, // Run schema validation on update
     });
-    if (!books) {
-      return res.status(401).json({message: 'book not found'});
+    if (!book) {
+      return res.status(404).json({message: 'Book not found'});
     }
-    res.status(200).json({message: 'Book updated successfully'});
+
+    res.status(200).json({message: 'Book updated successfully', book: book});
   } catch (error) {
+    console.error('Error updating book:', error);
+
     if (error.kind === 'ObjectId') {
       return res.status(400).json({message: 'Invalid Book ID format'});
     }
-    // 11000 is MONGO db error code for dublicate
+    // Handle potential duplicate ISBN error during update
     if (error.code === 11000 && error.keyPattern?.isbn) {
       return res.status(400).json({message: 'ISBN must be unique.'});
     }
+    // Use 500 for other server errors
+    return res
+      .status(500)
+      .json({message: 'Error updating book', error: error.message});
   }
 };
+
 const deleteBooks = async (req, res) => {
   try {
-    const books = await Book.findByIdAndDelete(req.params.id);
-    if (!books) {
-      return res.status(401).json({message: 'Book with this id not found'});
+    const book = await Book.findByIdAndDelete(req.params.id);
+    if (!book) {
+      return res.status(404).json({message: 'Book with this id not found'});
     }
     res.status(200).json({message: 'Book deleted successfully'});
   } catch (error) {
-    return res.status(401).json({message: 'Error in deleting the book'});
+    console.error('Error deleting book:', error);
+    if (error.kind === 'ObjectId') {
+      return res.status(400).json({message: 'Invalid Book ID format'});
+    }
+
+    return res.status(500).json({message: 'Error deleting the book'});
   }
 };
-const borrowedBook = async(req,res)=>{
-  const bookID = req.params.id
-  const userID = req.user._id
-
-  co
-
-}
 
 export {addBooks, getallBooks, getbooksId, updateBooks, deleteBooks};

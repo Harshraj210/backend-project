@@ -3,8 +3,17 @@ import User from '../models/userModel.js';
 
 const addBooks = async (req, res) => {
   try {
-    const {title, author, publisher, genre, isbn, totalQuantity, location} = req.body;
-    if (!title || !author || !isbn || !totalQuantity || !genre || !publisher || !location) {
+    const {title, author, publisher, genre, isbn, totalQuantity, location} =
+      req.body;
+    if (
+      !title ||
+      !author ||
+      !isbn ||
+      !totalQuantity ||
+      !genre ||
+      !publisher ||
+      !location
+    ) {
       return res.status(401).json({message: 'All things are required'});
     }
     const bookexist = await Book.findOne({isbn});
@@ -15,13 +24,13 @@ const addBooks = async (req, res) => {
     }
     const newBook = await Book.create({
       title,
-            author,
-            publisher,
-            genre, 
-            isbn,
-            totalQuantity, 
-            
-            location,
+      author,
+      publisher,
+      genre,
+      isbn,
+      totalQuantity,
+
+      location,
     });
   } catch (error) {
     return res.status(401).json({message: 'Book addition failed'});
@@ -31,7 +40,7 @@ const addBooks = async (req, res) => {
 const getallBooks = async (req, res) => {
   try {
     const books = await Book.find({});
-    return res.status(200).json({message: 'all books are here'}, books);
+    return res.status(200).json(books);
   } catch (error) {
     return res.status(401).json({message: 'Error in getting all books'});
   }
@@ -64,8 +73,12 @@ const updateBooks = async (req, res) => {
     }
     res.status(200).json({message: 'Book updated successfully'});
   } catch (error) {
-    if (error.kind === 'objectId') {
-      return res.status(400).json({ message: 'Invalid Book ID format' })
+    if (error.kind === 'ObjectId') {
+      return res.status(400).json({message: 'Invalid Book ID format'});
+    }
+    // 11000 is MONGO db error code for dublicate
+    if (error.code === 11000 && error.keyPattern?.isbn) {
+      return res.status(400).json({message: 'ISBN must be unique.'});
     }
   }
 };

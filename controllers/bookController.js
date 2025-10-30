@@ -130,5 +130,10 @@ const deleteBooks = async (req, res) => {
     return res.status(500).json({message: 'Error deleting the book'});
   }
 };
+const borrowedBook = async(req,res)=>{
+  const bookId = req.params.id
+  const user = req.suer._id
 
+  
+}
 export {addBooks, getallBooks, getbooksId, updateBooks, deleteBooks};

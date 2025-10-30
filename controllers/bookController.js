@@ -52,10 +52,15 @@ const addBooks = async (req, res) => {
     if (!validateNewBook.success) {
       return res
         .status(400)
-        .json({message: 'Invalid book data', errors: validateNewBook.error.errors});
+        .json({
+          message: 'Invalid book data',
+          errors: validateNewBook.error.errors,
+        });
     }
     const newBook = await Book.create(newBookData);
-    return res.status(200).json({message: 'Book added successfully', book: newBook});
+    return res
+      .status(200)
+      .json({message: 'Book added successfully', book: newBook});
   } catch (error) {
     return res.status(401).json({message: 'Book addition failed'});
   }

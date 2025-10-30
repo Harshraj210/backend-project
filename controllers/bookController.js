@@ -134,6 +134,17 @@ const borrowedBook = async(req,res)=>{
   const bookId = req.params.id
   const user = req.suer._id
 
+  const book = await Book.findOne(bookId)
+  if(!book){
+    return res.status(401).json({message:"Book with this ID can't be borrowed"})
+  }
+
+  if(book.quantityAvailable<=0){
+    return res.status(401).json({message:"Sorry!!,Book is Not available"})
+  }
+
   
+
+
 }
 export {addBooks, getallBooks, getbooksId, updateBooks, deleteBooks};

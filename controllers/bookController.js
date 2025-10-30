@@ -1,4 +1,5 @@
 import Book from '../models/bookModel.js';
+import User from "../controllers/userController.js"
 
 const addBooks = async (req, res) => {
   try {
@@ -132,7 +133,7 @@ const deleteBooks = async (req, res) => {
 };
 const borrowedBook = async(req,res)=>{
   const bookId = req.params.id
-  const user = req.suer._id
+  const userID = req.suer._id
 
   const book = await Book.findOne(bookId)
   if(!book){
@@ -141,6 +142,11 @@ const borrowedBook = async(req,res)=>{
 
   if(book.quantityAvailable<=0){
     return res.status(401).json({message:"Sorry!!,Book is Not available"})
+  }
+
+  const user = await User.findOne(userID)
+  if(!user){
+    return res.status(401).json({message:"Sorry!!, user not found"})
   }
 
   

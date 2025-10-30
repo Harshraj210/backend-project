@@ -1,37 +1,61 @@
 import Book from '../models/bookModel.js';
 import User from '../models/userModel.js';
+import zod from 'zod';
+const bookSchema = zod.object({
+  title: zod.string().min(1, 'Title is required'),
+  author: zod.string().min(1, 'Author is required'),
+  publisher: zod.string().min(1, 'Publisher is required'),
+  genre: zod.string().min(1, 'Genre is required'),
+  isbn: zod.string().min(1, 'ISBN is required'),
+  totalQuantity: zod.number().min(1, 'Total Quantity is required'),
+  location: zod.string().min(1, 'Location is required'),
+});
 
 const addBooks = async (req, res) => {
   try {
     const {title, author, publisher, genre, isbn, totalQuantity, location} =
       req.body;
-    if (
-      !title ||
-      !author ||
-      !isbn ||
-      !totalQuantity ||
-      !genre ||
-      !publisher ||
-      !location
-    ) {
-      return res.status(401).json({message: 'All things are required'});
+
+    const validation = bookSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res
+        .status(400)
+        .json({message: 'Invalid book data', errors: validation.error.errors});
     }
+    // if (
+    //   !title ||
+    //   !author ||
+    //   !isbn ||
+    //   !totalQuantity ||
+    //   !genre ||
+    //   !publisher ||
+    //   !location
+    // ) {
+    //   return res.status(401).json({message: 'All things are required'});
+    // }
     const bookexist = await Book.findOne({isbn});
     if (bookexist) {
       return res
         .status(400)
         .json({message: 'Book with this ISBN already exist'});
     }
-    const newBook = await Book.create({
+    const newBookData = {
       title,
       author,
       publisher,
       genre,
       isbn,
       totalQuantity,
-
       location,
-    });
+    };
+    const validateNewBook = bookSchema.safeParse(newBookData);
+    if (!validateNewBook.success) {
+      return res
+        .status(400)
+        .json({message: 'Invalid book data', errors: validateNewBook.error.errors});
+    }
+    const newBook = await Book.create(newBookData);
+    return res.status(200).json({message: 'Book added successfully', book: newBook});
   } catch (error) {
     return res.status(401).json({message: 'Book addition failed'});
   }

@@ -1,5 +1,5 @@
 import Book from '../models/bookModel.js';
-import User from "../controllers/userController.js"
+import User from '../controllers/userController.js';
 
 const addBooks = async (req, res) => {
   try {
@@ -15,12 +15,10 @@ const addBooks = async (req, res) => {
       !publisher ||
       !location
     ) {
-      return res
-        .status(400)
-        .json({
-          message:
-            'Title, Author, ISBN, Total Quantity, Genre, Publisher, and Location are required',
-        });
+      return res.status(400).json({
+        message:
+          'Title, Author, ISBN, Total Quantity, Genre, Publisher, and Location are required',
+      });
     }
 
     // Check if book exists
@@ -48,12 +46,10 @@ const addBooks = async (req, res) => {
   } catch (error) {
     console.error('Error adding book:', error);
 
-    return res
-      .status(500)
-      .json({
-        message: 'Book addition failed due to server error',
-        error: error.message,
-      });
+    return res.status(500).json({
+      message: 'Book addition failed due to server error',
+      error: error.message,
+    });
   }
 };
 
@@ -131,26 +127,64 @@ const deleteBooks = async (req, res) => {
     return res.status(500).json({message: 'Error deleting the book'});
   }
 };
-const borrowedBook = async(req,res)=>{
-  const bookId = req.params.id
-  const userID = req.suer._id
+const borrowedBook = async (req, res) => {
+  try {
+    const bookId = req.params.id;
+    const userID = req.suer._id;
 
-  const book = await Book.findOne(bookId)
-  if(!book){
-    return res.status(401).json({message:"Book with this ID can't be borrowed"})
+    const book = await Book.findOne(bookId);
+    if (!book) {
+      return res
+        .status(401)
+        .json({message: "Book with this ID can't be borrowed"});
+    }
+
+    if (book.quantityAvailable <= 0) {
+      return res.status(401).json({message: 'Sorry!!,Book is Not available'});
+    }
+
+    const user = await User.findOne(userID);
+    if (!user) {
+      return res.status(401).json({message: 'Sorry!!, user not found'});
+    }
+    // it checks if user already borrowed the book
+    const alreadyBorrowed = user.borrowedBooks.some(
+      (borrowed) => borrowed.book.toString() === bookId
+    );
+    if (alreadyBorrowed) {
+      return res
+        .status(400)
+        .json({message: 'You have already borrowed this book'});
+    }
+
+    // decreasing the quantity
+    book.quantityAvailable = book.quantityAvailable - 1;
+
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 14); // Add 14 days
+
+    // Add Book to User's Borrowed List
+    user.borrowedBooks.push({book: bookId, dueDate: dueDate});
+
+    //  Save Changes to Database
+    await book.save();
+    await user.save();
+
+    res.status(200).json({
+      message: 'Book borrowed successfully',
+      dueDate: dueDate.toISOString().split('T')[0],
+    });
+  } catch (error) {
+    if (error.kind === 'ObjectId') {
+      return res
+        .status(400)
+        .json({message: 'Invalid Book ID or User ID format'});
+    }
+
+    res
+      .status(500)
+      .json({message: 'Server error borrowing book', error: error.message});
   }
+};
 
-  if(book.quantityAvailable<=0){
-    return res.status(401).json({message:"Sorry!!,Book is Not available"})
-  }
-
-  const user = await User.findOne(userID)
-  if(!user){
-    return res.status(401).json({message:"Sorry!!, user not found"})
-  }
-
-  
-
-
-}
 export {addBooks, getallBooks, getbooksId, updateBooks, deleteBooks};

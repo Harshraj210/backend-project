@@ -15,11 +15,28 @@ const userSchema = new mongoose.Schema(
       require: true,
       unique: true,
     },
+    // array to store borrowed book info
+    borrowedBooks: [borrowedBookSchema],
   },
   {
     timestamps: true,
   }
 );
 
+const borrowedBookSchema = new mongoose.Schema({
+  book: {
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Book', 
+    required: true,
+  },
+  borrowDate: {
+    type: Date,
+    default: Date.now,
+  },
+  dueDate: {
+    type: Date,
+    required: true,
+  },
+},{_id: false})
 const User = mongoose.model('User', userSchema);
 export default User;

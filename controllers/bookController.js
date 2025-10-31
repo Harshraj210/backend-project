@@ -187,4 +187,4 @@ const borrowedBook = async (req, res) => {
   }
 };
 
-export {addBooks, getallBooks, getbooksId, updateBooks, deleteBooks};
+export {addBooks, getallBooks, getbooksId, updateBooks, deleteBooks,borrowedBook };

@@ -195,7 +195,10 @@ const returnBook = async (req, res) => {
   if (!book) {
     return res.status(401).json({message: 'Book with this ID not found'});
   }
-  const user = awa;
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(401).json({message: "User with ID can't be found"});
+  }
 };
 
 export {

@@ -1,4 +1,19 @@
 import mongoose from 'mongoose';
+const borrowedBookSchema = new mongoose.Schema({
+  book: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Book',
+    required: true,
+  },
+  borrowDate: {
+    type: Date,
+    default: Date.now,
+  },
+  dueDate: {
+    type: Date,
+    required: true,
+  },
+}, {_id: false});
 
 const userSchema = new mongoose.Schema(
   {
@@ -23,20 +38,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-const borrowedBookSchema = new mongoose.Schema({
-  book: {
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Book', 
-    required: true,
-  },
-  borrowDate: {
-    type: Date,
-    default: Date.now,
-  },
-  dueDate: {
-    type: Date,
-    required: true,
-  },
-},{_id: false})
+
 const User = mongoose.model('User', userSchema);
 export default User;

@@ -130,9 +130,9 @@ const deleteBooks = async (req, res) => {
 const borrowedBook = async (req, res) => {
   try {
     const bookId = req.params.id;
-    const userID = req.suer._id;
+    const userID = req.user._id;
 
-    const book = await Book.findOne(bookId);
+    const book = await Book.findById(bookId);
     if (!book) {
       return res
         .status(401)
@@ -143,7 +143,7 @@ const borrowedBook = async (req, res) => {
       return res.status(401).json({message: 'Sorry!!,Book is Not available'});
     }
 
-    const user = await User.findOne(userID);
+    const user = await User.findById(userID);
     if (!user) {
       return res.status(401).json({message: 'Sorry!!, user not found'});
     }
@@ -158,13 +158,20 @@ const borrowedBook = async (req, res) => {
     }
 
     // decreasing the quantity
-    book.quantityAvailable = book.quantityAvailable - 1;
+ 
+    book.quantityAvailable -= 1;
+    const borrowDate = new Date();
+    const dueDate = new Date(borrowDate);
+    dueDate.setDate(borrowDate.getDate() + 14);
 
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 14); // Add 14 days
+    // dueDate.setDate(dueDate.getDate() + 14); // Add 14 days
 
     // Add Book to User's Borrowed List
-    user.borrowedBooks.push({book: bookId, dueDate: dueDate});
+    user.borrowedBooks.push({
+      book: bookId,
+      dueDate: dueDate,
+      borrowDate: borrowDate,
+    });
 
     //  Save Changes to Database
     await book.save();
@@ -172,6 +179,7 @@ const borrowedBook = async (req, res) => {
 
     res.status(200).json({
       message: 'Book borrowed successfully',
+      borrowDate: borrowDate.toISOString().split('T')[0],
       dueDate: dueDate.toISOString().split('T')[0],
     });
   } catch (error) {
@@ -188,32 +196,58 @@ const borrowedBook = async (req, res) => {
 };
 
 const returnBook = async (req, res) => {
-  const bookId = req.params.id;
-  const userId = req.user.id;
+  try {
+    const bookId = req.params.id;
+    const userId = req.user._id;
 
-  const book = await Book.findById(bookId);
-  if (!book) {
-    return res.status(401).json({message: 'Book with this ID not found'});
+    const book = await Book.findById(bookId);
+    if (!book) {
+      return res.status(401).json({message: 'Book with this ID not found'});
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(401).json({message: "User with ID can't be found"});
+    }
+
+    // Check if the User Borrowed That Book
+
+    const borrowedIndex = user.borrowedBooks.findIndex(
+      (borrowed) => borrowed.book.toString() === bookId
+    );
+
+    if (borrowedIndex === -1) {
+      return res.status(400).json({message: 'You have not borrowed this book'});
+    }
+
+    if (book.quantityAvailable < book.totalQuantity) {
+      book.quantityAvailable = book.quantityAvailable + 1;
+    } else {
+      console.warn(
+        `Book ${bookId} returned, but quantityAvailable matched totalQuantity.`
+      );
+    }
+
+    // Remove Book from User’s Borrowed List
+    user.borrowedBooks.splice(borrowedIndex, 1);
+
+    await book.save();
+    await user.save();
+    const returnDate = new Date();
+    res.status(200).json({
+      message: 'Book returned successfully',
+      // The T is a literal character that acts as a delimiter separating the date part and time part
+      returnDate: returnDate.toISOString().split('T')[0],
+    });
+  } catch (error) {
+    if (error.kind === 'ObjectId') {
+      return res
+        .status(400)
+        .json({message: 'Invalid Book ID or User ID format'});
+    }
+    res
+      .status(500)
+      .json({message: 'Server error returning book', error: error.message});
   }
-  const user = await User.findById(userId);
-  if (!user) {
-    return res.status(401).json({message: "User with ID can't be found"});
-  }
-
-  // Check if the User Borrowed That Book
-
-  const borrowedIndex = user.borrowedBooks.findIndex(
-    (borrowed) => borrowed.book.toString() === bookId
-  );
-
-  if (borrowedIndex === -1) {
-    return res.status(400).json({message: 'You have not borrowed this book'});
-  }
-
-  if (book.quantityAvailable < book.totalQuantity) {
-    book.quantityAvailable = book.quantityAvailable + 1;
-  }
-  
 };
 
 export {
@@ -223,4 +257,5 @@ export {
   updateBooks,
   deleteBooks,
   borrowedBook,
+  returnBook,
 };

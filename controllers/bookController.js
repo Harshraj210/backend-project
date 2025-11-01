@@ -1,5 +1,5 @@
 import Book from '../models/bookModel.js';
-import User from '../models/userModel.js'; 
+import User from '../models/userModel.js';
 
 const addBooks = async (req, res) => {
   try {
@@ -187,4 +187,15 @@ const borrowedBook = async (req, res) => {
   }
 };
 
-export {addBooks, getallBooks, getbooksId, updateBooks, deleteBooks,borrowedBook };
+const returnBook = async(req,res)=>{
+  const book = await Book.findById(bookID)
+}
+
+export {
+  addBooks,
+  getallBooks,
+  getbooksId,
+  updateBooks,
+  deleteBooks,
+  borrowedBook,
+};

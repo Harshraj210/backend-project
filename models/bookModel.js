@@ -22,7 +22,6 @@ const bookSchema = new mongoose.Schema(
       },
       validate: {
         validator: function (value) {
-       
           return value <= this.totalQuantity;
         },
         message: 'Available quantity cannot exceed total quantity',

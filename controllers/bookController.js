@@ -209,6 +209,11 @@ const returnBook = async (req, res) => {
   if (borrowedIndex === -1) {
     return res.status(400).json({message: 'You have not borrowed this book'});
   }
+
+  if (book.quantityAvailable < book.totalQuantity) {
+    book.quantityAvailable = book.quantityAvailable + 1;
+  }
+  
 };
 
 export {

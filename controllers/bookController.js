@@ -187,9 +187,16 @@ const borrowedBook = async (req, res) => {
   }
 };
 
-const returnBook = async(req,res)=>{
-  const book = await Book.findById(bookID)
-}
+const returnBook = async (req, res) => {
+  const bookId = req.params.id;
+  const userId = req.user.id;
+
+  const book = await Book.findById(bookId);
+  if (!book) {
+    return res.status(401).json({message: 'Book with this ID not found'});
+  }
+  const user = awa;
+};
 
 export {
   addBooks,

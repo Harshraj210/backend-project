@@ -199,6 +199,16 @@ const returnBook = async (req, res) => {
   if (!user) {
     return res.status(401).json({message: "User with ID can't be found"});
   }
+
+  // Check if the User Borrowed That Book
+
+  const borrowedIndex = user.borrowedBooks.findIndex(
+    (borrowed) => borrowed.book.toString() === bookId
+  );
+
+  if (borrowedIndex === -1) {
+    return res.status(400).json({message: 'You have not borrowed this book'});
+  }
 };
 
 export {
